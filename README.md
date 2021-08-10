@@ -12,7 +12,7 @@ package, just to make life easier.
 
 ## Installation
 ```sh
-pip install harvest-mightyhive
+pip install harvest-for-mightyhive
 ```
 <!-- USAGE EXAMPLES -->
 ## Usage

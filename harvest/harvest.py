@@ -31,7 +31,12 @@ class Harvest:
         driver.find_element_by_xpath('//*[@id="password"]')\
               .send_keys(self.password)
         driver.find_element_by_xpath('//*[@id="log-in"]').click()
-        return driver
+        try: 
+            driver.find_element_by_class_name("alert")
+        except NoSuchElementException:
+            return driver
+        else:
+            raise ValueError("Wrong username or password")
 
     @property
     def date(self):
@@ -48,9 +53,11 @@ class Harvest:
             "https://mhsfdc.harvestapp.com/time/day/"
             f"{value.year}/{value.month}/{value.day}/3790451"
         )
-        entry_xpath = '//*[@id="main"]/div[2]/div/section/div[1]/div[1]/button'
         self.driver.get(url)
-        self.driver.find_element_by_xpath(entry_xpath).click()
+        selector = 'button[data-analytics-element-id="timesheet-new-entry"]'
+        self.driver \
+            .find_element_by_css_selector(selector) \
+            .click()
 
     @property
     def project(self):

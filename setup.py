@@ -6,7 +6,7 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="harvest-for-mightyhive",
-    version="0.0.2",
+    version="0.0.3",
     author="Yang Dai",
     author_email="yang.dai2020@gmail.com",
     description="An automation tool to speed up the process of updating entries in harvest",

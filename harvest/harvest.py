@@ -8,6 +8,7 @@ items, it does not know which task's time to start.
 
 """
 import time
+import logging
 from datetime import date, datetime
 
 from selenium import webdriver
@@ -22,21 +23,31 @@ class Harvest:
         self.driver = self._login()
 
     def _login(self):
+        logging.debug("Fireing up webdriver")
         options = webdriver.ChromeOptions()
         options.add_argument("--headless")
         driver = webdriver.Chrome(options=options)
+
+        logging.debug("Navigating to sign in page.")
         driver.get("https://id.getharvest.com/harvest/sign_in")
+
+        logging.debug("Filling out username and password")
         driver.find_element_by_xpath('//*[@id="email"]')\
               .send_keys(self.username)
         driver.find_element_by_xpath('//*[@id="password"]')\
               .send_keys(self.password)
+
+        logging.debug("Signing in...")
         driver.find_element_by_xpath('//*[@id="log-in"]').click()
         try: 
             driver.find_element_by_class_name("alert")
         except NoSuchElementException:
+            logging.info("Successfully signed in.")
             return driver
         else:
-            raise ValueError("Wrong username or password")
+            message = "Wrong username or password"
+            logging.error(message)
+            raise ValueError(message)
 
     @property
     def date(self):
@@ -49,11 +60,14 @@ class Harvest:
 
     @date.setter
     def date(self, value: date):
+        logging.info("Populate the date %s", str(value))
         url = (
             "https://mhsfdc.harvestapp.com/time/day/"
             f"{value.year}/{value.month}/{value.day}/3790451"
         )
         self.driver.get(url)
+
+        logging.debug("Start fillin the new entry form.")
         selector = 'button[data-analytics-element-id="timesheet-new-entry"]'
         self.driver \
             .find_element_by_css_selector(selector) \
@@ -61,12 +75,19 @@ class Harvest:
 
     @property
     def project(self):
-        xpath = '//*[@id="calendar-recurring-event-popover-wrapper"]/div[2]/div/a/span' # noqa
+        xpath = (
+            '//*[@id="calendar-recurring-event-popover-wrapper"]'
+            '/div[2]/div/a/span'
+        )
         return self.driver.find_element_by_xpath(xpath).text
 
     @project.setter
     def project(self, value):
-        xpath = '//*[@id="calendar-recurring-event-popover-wrapper"]/div[2]/div/a' # noqa
+        logging.info("Select the project %s.", value)
+        xpath = (
+            '//*[@id="calendar-recurring-event-popover-wrapper"]'
+            '/div[2]/div/a'
+        )
         self.driver.find_element_by_xpath(xpath).click()
         self.driver \
             .find_element_by_css_selector(f'li[title="{value}"]') \
@@ -79,6 +100,7 @@ class Harvest:
 
     @task.setter
     def task(self, value):
+        logging.info("Select the task %s.", value)
         xpath = '/html/body/div[3]/div[1]/div[1]/form/div[2]/div/a'
         self.driver.find_element_by_xpath(xpath).click()
         self.driver \
@@ -91,6 +113,7 @@ class Harvest:
 
     @note.setter
     def note(self, text):
+        logging.info("Populate the note field %s", text)
         self.driver.find_element_by_name("notes").send_keys(text)
 
     @property
@@ -102,9 +125,11 @@ class Harvest:
         """
         format: X:X  or  X.X
         """
+        logging.info("Populate the duration field %s", value)
         self.driver.find_element_by_name("hours").send_keys(value)
 
     def submit(self):
+        logging.info("Submit the entry form.")
         xpath = "/html/body/div[3]/div[1]/div[1]/form/div[4]/button[1]"
         elem = self.driver.find_element_by_xpath(xpath)
         if elem.text != "Save Entry":
